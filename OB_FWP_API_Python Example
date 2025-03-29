@@ -1,0 +1,49 @@
+import requests
+import json
+
+# Step 1: Login
+login_url = "https://foodwaste-api-iz3pu.ondigitalocean.app/login"
+login_payload = {
+    "email": "your_email",
+    "password": "your_password"
+}
+login_headers = {
+    "Content-Type": "application/json"
+}
+
+try:
+    login_response = requests.post(login_url, json=login_payload, headers=login_headers, timeout=10)
+    login_response.raise_for_status()
+    token = login_response.json().get("token")
+
+    if not token:
+        raise ValueError("Login succeeded but no token returned.")
+
+    print("Logged in successfully. Token acquired.")
+
+    # Step 2: Get foodwaste data
+    data_url = "https://foodwaste-api-iz3pu.ondigitalocean.app/getCurrentFoodwasteData_by_machine_name"
+    data_payload = {
+        "machine_name": "your_machine_name"
+    }
+    data_headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    data_response = requests.post(data_url, json=data_payload, headers=data_headers, timeout=10)
+    data_response.raise_for_status()
+
+    data_json = data_response.json()
+    print("Data received:", data_json)
+
+    # Step 3: Save response to a JSON file
+    with open("response.json", "w", encoding="utf-8") as f:
+        json.dump(data_json, f, indent=4)
+
+    print("💾 Response saved to 'response.json'")
+
+except requests.exceptions.RequestException as e:
+    print("Request failed:", e)
+except ValueError as ve:
+    print("❌", ve)
